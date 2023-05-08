@@ -1,14 +1,13 @@
 <template>
   <div class="tasks">
-    <button class="previous-tasks-btn" @click="showDatePicker = !showDatePicker">이전 계획보기</button>
-    <div v-if="showDatePicker">
+    <div>
       <date-picker v-model="selectedDate" @close="showDatePicker = false"></date-picker>
     </div>
     <h1>Tasks</h1>
     <div class="week">
       <div class="day" v-for="day in week" :key="day.date">
         <div class="date">{{ day.date }}</div>
-        <div class="weekday">{{ day.weekday }}</div>
+        <div class="weekday">{{ weekdays[day.weekday] }}</div>
       </div>
     </div>
     <div class="todays-tasks">
@@ -32,52 +31,72 @@ export default {
   setup() {
     const showDatePicker = ref(false);
     const selectedDate = ref(null);
+    const weekdays = ref([]);
 
-    return {
-      showDatePicker,
-      selectedDate,
-    };
-  },
-  data() {
-    return {
-      week: [],
-      todaysTasks: [
-        {id: 1, title: "Task 1"},
-        {id: 2, title: "Task 2"},
-        {id: 3, title: "Task 3"},
-      ],
-    };
-  },
-  created() {
-    this.getWeek();
-  },
-  methods: {
-    getWeek() {
+    function openDatePicker() {
+      showDatePicker.value = true;
+    }
+
+    function getWeek() {
       const today = new Date();
       const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
 
+      const week = [];
       for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(date.getDate() + i);
 
         const day = {
           date: date.getDate(),
-          weekday: new Intl.DateTimeFormat("en-US", {weekday: "short"}).format(date),
+          weekday: date.getDay(),
         };
 
-        this.week.push(day);
+        week.push(day);
       }
+
+      return week;
+    }
+
+    function formatWeekday(date) {
+      const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(date);
+      return weekday.substring(0, 3);
+    }
+
+    function getWeekday() {
+      const selected = new Date(selectedDate.value);
+      const week = getWeek();
+      const weekdaysArray = week.map((day) => formatWeekday(new Date(selected.getFullYear(), selected.getMonth(), day.date)));
+      weekdays.value = weekdaysArray;
+    }
+
+    return {
+      showDatePicker,
+      selectedDate,
+      weekdays,
+      openDatePicker,
+    };
+  },
+  data() {
+    return {
+      todaysTasks: [
+        { id: 1, title: "Task 1" },
+        { id: 2, title: "Task 2" },
+        { id: 3, title: "Task 3" },
+      ],
+    };
+  },
+  created() {
+    this.week = this.getWeek();
+  },
+  watch: {
+    selectedDate() {
+      this.getWeekday();
     },
   },
 };
 </script>
 
 <style scoped>
-.previous-tasks-btn {
-  font-size: 0.8rem;
-  margin-bottom: 20px;
-}
-
 .tasks {
   display: flex;
   flex-direction: column;
@@ -86,6 +105,7 @@ export default {
 
 .week {
   display: flex;
+  margin-top: 20px;
 }
 
 .day {
@@ -98,4 +118,19 @@ export default {
 .todays-tasks {
   margin-top: 20px;
 }
+
+.task {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.task-check {
+  margin-right: 10px;
+}
+
+.task-title {
+  flex: 1;
+}
 </style>
+
