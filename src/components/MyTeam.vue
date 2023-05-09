@@ -3,20 +3,40 @@
     <div class="team-list owner">
       <h3>내가 만든 팀</h3>
       <div class="team" v-for="team in teams" :key="team.id">
-        <h3>{{ team.teamName }}</h3>
-        <p>{{ team.description }}</p>
-        <button @click="deleteTeam(team.id)">Delete</button>
-        <button @click="updateTeam(team.id)">Update</button>
+        <div v-if="team.owner">
+          <h3>{{ team.teamName }}</h3>
+          <p>{{ team.description }}</p>
+          <button @click="deleteTeam(team.id)">Delete</button>
+          <button @click="openUpdateModal(team)">Update</button>
+        </div>
       </div>
     </div>
 
     <div class="team-list owner">
       <h3>가입한 팀</h3>
       <div class="team" v-for="team in teams" :key="team.id">
-        <h3>{{ team.teamName }}</h3>
-        <p>{{ team.description }}</p>
-        <button @click="no">Delete</button>
+        <div v-if="!team.owner">
+          <h3>{{ team.teamName }}</h3>
+          <p>{{ team.description }}</p>
+          <button @click="no">Delete</button>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- 팀 수정 모달 -->
+  <div class="modal" v-if="showUpdateModal">
+    <div class="modal-content">
+      <input class="tag-input team-name" type="text" :value="selectedTeam.teamName">
+      <input
+          type="text"
+          :value="selectedTeam.description"
+          class="tag-input description"
+      />
+      <span>팀을 공개하실 건가요?</span>
+      <input type="checkbox" @change="changeOpenOption()"/> <br/>
+      <button @click="updateTeam(selectedTeam)">Update</button>
+      <button @click="closeUpdateModal">Close</button>
     </div>
   </div>
 </template>
@@ -30,6 +50,9 @@ export default {
     return {
       apiUrl: `${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}`,
       teams: [],
+      showUpdateModal: false,
+      selectedTeam: null,
+      updateTeamIsOpen: false,
     };
   },
   async mounted() {
@@ -48,6 +71,20 @@ export default {
     }
   },
   methods: {
+    openUpdateModal(team) {
+      this.selectedTeam = team;
+      this.showUpdateModal = true;
+    },
+
+    closeUpdateModal() {
+      this.showUpdateModal = false;
+    },
+
+    changeOpenOption() {
+      this.updateTeamIsOpen = !this.updateTeamIsOpen;
+      console.log(this.updateTeamIsOpen);
+    },
+
     async deleteTeam(id) {
       if (!confirm("정말 삭제하시겠습니까?")) {
         return;
@@ -67,21 +104,39 @@ export default {
         console.error('Error deleting team:', error);
       }
 
-      axios.delete(this.apiUrl + `/team/delete/` + id,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
-            },
-          }).then(() => {
-      }).catch((error) => {
-        console.error(error);
-      });
-
     },
+    async updateTeam(team) {
+      const teamDto = {
+        id: team.id,
+        teamName: document.getElementsByClassName('team-name')[0].value,
+        description: document.getElementsByClassName('description')[0].value,
+        isOpen: this.updateTeamIsOpen,
+      };
+
+      try {
+        await axios.put(this.apiUrl + '/team/update', teamDto, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
+          }
+        });
+
+        const teamIndex = this.teams.findIndex(t => t.id === team.id);
+        if (teamIndex !== -1) {
+          this.teams[teamIndex].name = document.getElementsByClassName('team-name')[0].value;
+          this.teams[teamIndex].description = document.getElementsByClassName('description')[0].value;
+        }
+
+        alert('팀 수정 성공');
+        this.closeUpdateModal();
+      } catch (error) {
+        console.error('Error updating team:', error);
+      }
+    },
+
   },
 
-}
+};
 </script>
 
 <style scoped>
@@ -98,4 +153,46 @@ export default {
   margin-bottom: 16px;
   width: 80%;
 }
+
+.modal {
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #fefefe;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.team-name {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+}
+
+.description {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+}
+
+.tag-input {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+}
+
 </style>

@@ -116,7 +116,7 @@ export default {
     },
     submitJoin() {
       console.log('Submitted team name:', this.teamTag);
-      this.closeCreateTeamModal();
+      this.closeJoinModal();
     },
 
     openTagModal() {
