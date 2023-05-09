@@ -1,5 +1,5 @@
 <template>
-  <div class="calendar">
+  <div class="calendar box">
     <div class="calendar-title">
       {{ formatDate(selectedDate) }}의 TodoList
     </div>
@@ -55,7 +55,7 @@ export default {
 .todo-list {
   list-style-type: none;
   padding: 0;
-  width: 30%;
+  width: 100%;
 }
 
 .todo-list li {
@@ -85,5 +85,13 @@ export default {
   height: 1px;
   background-color: #ccc;
   top: 50%;
+}
+
+.box {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 15px;
 }
 </style>
