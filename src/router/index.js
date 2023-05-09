@@ -7,6 +7,7 @@ import TeamListView from "@/components/TeamListView.vue";
 import LoginView from "@/components/LoginView.vue";
 import UserProfileView from "@/components/UserProfileView.vue";
 import SignUpView from "@/components/SignUpView.vue";
+import MyTeam from "@/components/MyTeam.vue";
 
 const routes = [
     {path: '/', component: HomeView},
@@ -17,6 +18,7 @@ const routes = [
     {path: '/login', component: LoginView},
     {path: '/profile', component: UserProfileView},
     {path: '/signup', component: SignUpView},
+    {path:'/myteams', component: MyTeam},
 ];
 
 const router = createRouter({

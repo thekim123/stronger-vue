@@ -5,13 +5,13 @@
       <button @click="openTagModal" class="tag-input-button">초대 코드</button>
       <button @click="openCreateTeamModal" class="create-team-input-button">팀 만들기</button>
       <div class="team" v-for="team in filterTeams()" :key="team.name">
-        <h3>{{ team.name }}</h3>
+        <h3>{{ team.teamName }}</h3>
         <p>{{ team.description }}</p>
         <button @click="openJoinModal(team)">Join</button>
       </div>
     </div>
 
-    <!-- 모달 -->
+    <!-- 초대 코드 모달 -->
     <div class="modal" v-if="showTagModal">
       <div class="modal-content">
         <h3>Enter Team Tag</h3>
@@ -25,19 +25,31 @@
         <button @click="closeTagModal">Close</button>
       </div>
     </div>
+
+    <!-- 팀 만들기 모달 -->
     <div class="modal" v-if="showCreateTeamModal">
       <div class="modal-content">
-        <h3>Enter Team Name</h3>
+        <h3>팀 만들기</h3>
         <input
             type="text"
-            v-model="teamTag"
-            placeholder="Enter team tag..."
+            v-model="createTeamName"
+            placeholder="팀명을 입력해주세요."
             class="tag-input"
         />
+        <input
+            type="text"
+            v-model="createTeamDescription"
+            placeholder="팀에 대한 간략한 설명을 입력해주세요."
+            class="tag-input"
+        />
+        <span>팀을 공개하실 건가요?</span>
+        <input type="checkbox" @change="changeOpenOption(createTeamOpen)"/> <br/>
         <button @click="submitCreate">Submit</button>
         <button @click="closeCreateTeamModal">Close</button>
       </div>
     </div>
+
+    <!-- 팀 가입 모달 -->
     <div class="modal" v-if="showJoinModal">
       <div class="modal-content">
         <h3>Wanna Join?</h3>
@@ -55,10 +67,13 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: 'TeamListView',
   data() {
     return {
+      apiUrl: `${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}`,
       teams: [], // 팀 목록 데이터를 저장할 배열
       searchQuery: '', // 검색어를 저장할 변수
       showTagModal: false, // 초대 코드 모달을 표시할지 결정하는 변수
@@ -66,24 +81,22 @@ export default {
       showCreateTeamModal: false, // 팀 생성 모달을 표시할지 결정하는 변수
       selectedTeam: null, // 선택한 팀을 저장할 변수
       teamTag: '', // 팀 태그를 저장할 변수
+      createTeamName: '',
+      createTeamDescription: '',
+      createTeamOpen: false,
 
     };
   },
   // Vue에서 API를 호출하여 팀 목록 데이터를 가져오는 메서드를 추가합니다.
   // 예제에서는 더미 데이터를 사용합니다.
-  created() {
-    this.teams = [
-      {
-        name: 'Team A',
-        description: 'Team A is a great team.',
-        tags: ['Vue.js', 'React', 'JavaScript'],
-      },
-      {
-        name: 'Team B',
-        description: 'Team B is a fantastic team.',
-        tags: ['Python', 'Django', 'Flask'],
-      },
-    ];
+  async mounted() {
+    try {
+      const response = await axios.get(this.apiUrl + '/team/list')
+      this.teams = response.data;
+      console.log('Team list:', this.teams);
+    } catch (error) {
+      console.error('Error fetching team list:', error);
+    }
   },
   methods: {
     // 검색 결과를 필터링하는 메서드를 추가합니다.
@@ -105,6 +118,7 @@ export default {
       console.log('Submitted team name:', this.teamTag);
       this.closeCreateTeamModal();
     },
+
     openTagModal() {
       this.showTagModal = true;
     },
@@ -116,16 +130,41 @@ export default {
       console.log('Submitted team tag:', this.teamTag);
       this.closeTagModal();
     },
+
     openCreateTeamModal() {
       this.showCreateTeamModal = true;
     },
     closeCreateTeamModal() {
       this.showCreateTeamModal = false;
     },
-    submitCreate() {
+    changeOpenOption(createTeamOpen) {
+      this.createTeamOpen = !createTeamOpen;
+    },
+
+    async submitCreate() {
+      const teamDto = {
+        teamName: this.createTeamName,
+        description: this.createTeamDescription,
+        isOpen: this.createTeamOpen,
+      };
+
+      axios.post(this.apiUrl+`/team/create`,
+          teamDto, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
+            },
+          }).then(() => {
+        alert('팀 생성 성공');
+        this.teams.push(teamDto);
+      }).catch((error) => {
+        console.error(error);
+      });
       console.log('Submitted team name:', this.teamTag);
       this.closeCreateTeamModal();
     },
+
+
   },
 };
 </script>
