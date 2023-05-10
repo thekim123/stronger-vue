@@ -4,7 +4,9 @@
       <h3>내가 만든 팀</h3>
       <div class="team" v-for="team in teams" :key="team.id">
         <div v-if="team.owner">
-          <h3>{{ team.teamName }}</h3>
+          <router-link :to="`/my-teams/owner/detail/${team.id}`" class="btn btn-primary" :teamId="team.id">
+            <h3>{{ team.teamName }}</h3>
+          </router-link>
           <p>{{ team.description }}</p>
           <button @click="deleteTeam(team.id)">Delete</button>
           <button @click="openUpdateModal(team)">Update</button>
@@ -16,7 +18,9 @@
       <h3>가입한 팀</h3>
       <div class="team" v-for="team in teams" :key="team.id">
         <div v-if="!team.owner">
-          <h3>{{ team.teamName }}</h3>
+          <router-link :to="`/my-teams/detail/${team.id}/teamMemberId/1`" class="btn btn-primary">
+            <h3>{{ team.teamName }}</h3>
+          </router-link>
           <p>{{ team.description }}</p>
           <button @click="no">Delete</button>
         </div>
@@ -65,6 +69,7 @@ export default {
       });
       this.teams = response.data;
       console.log('Team list:', this.teams);
+      console.log(this.teams[0].id);
     } catch
         (error) {
       console.error('Error fetching team list:', error);

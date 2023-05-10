@@ -9,7 +9,7 @@
         <li><router-link to="/login">Login</router-link></li>
         <li><router-link to="/profile">Profile</router-link></li>
         <li><router-link to="/signup">Sign Up</router-link></li>
-        <li><router-link to="/myteams">My Team</router-link></li>
+        <li><router-link to="/my-teams">My Team</router-link></li>
 
       </ul>
     </nav>
