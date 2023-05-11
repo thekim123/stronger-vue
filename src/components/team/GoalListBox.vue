@@ -1,7 +1,6 @@
 <!-- GoalList.vue -->
 <template>
   <div>
-    <h3>Goals</h3>
     <ul>
       <li v-for="(goal, index) in goals" :key="index" class="list-group-item">
         <div class="d-flex justify-content-between align-items-center">
@@ -44,6 +43,22 @@ export default {
       newGoal: "",
     };
   },
+  mounted() {
+    axios.get(this.apiUrl + '/plan/team/' + this.teamId, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
+      },
+    }).then((response) => {
+      console.log(response);
+      if (response === null) {
+        console.log("response is null");
+      }
+      this.$emit('add-goal', response.data);
+    }).catch((error) => {
+      console.log(error);
+    });
+  },
   methods: {
     editGoal(goal) {
       goal.isEditing = true;
@@ -54,7 +69,6 @@ export default {
     addGoal() {
       if (this.newGoal.trim()) {
         this.$emit('add-goal', {name: this.newGoal, isEditing: false});
-        this.newGoal = "";
 
         const data = {
           title: this.newGoal,
