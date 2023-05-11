@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <!-- Team member view -->
-    <h2 class="mb-4">내 목표</h2>
     <GoalListBox :goals="userGoals" :editable="true" :teamId="teamId"/>
   </div>
 </template>
@@ -14,6 +13,7 @@ export default {
   name: "TeamMemberDetailView",
   data() {
     return {
+      apiUrl: `${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}`,
       teamMembers: [],
       userGoals: [],
       selectedMember: null,
@@ -24,16 +24,12 @@ export default {
   components: {
     GoalListBox: GoalListBox,
   },
-  computed: {
-    // Add computed properties here
-  },
   created() {
-    this.fetchUserPlan();
+    this.fetchUserGoal();
   },
   methods: {
-    async fetchUserPlan() {
-      console.log(this.memberId);
-      const response = await axios.get(`${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}` + '/plan/team/'+this.memberId, {
+    async fetchUserGoal() {
+      const response = await axios.get(this.apiUrl + '/plan/team/'+this.memberId, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
@@ -43,7 +39,6 @@ export default {
     },
     showGoals(member) {
       this.selectedMember = member;
-      // Fetch goals for the selected team member
     },
   }
 };

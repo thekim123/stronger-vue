@@ -42,9 +42,13 @@
             placeholder="팀에 대한 간략한 설명을 입력해주세요."
             class="tag-input"
         />
+        <div>
+
+
+        </div>
         <span>팀을 공개하실 건가요?</span>
         <input type="checkbox" @change="changeOpenOption(createTeamOpen)"/> <br/>
-        <button @click="submitCreate">Submit</button>
+        <button @click="submitCreate">Create</button>
         <button @click="closeCreateTeamModal">Close</button>
       </div>
     </div>
@@ -71,6 +75,7 @@ import axios from "axios";
 
 export default {
   name: 'TeamListView',
+
   data() {
     return {
       apiUrl: `${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}`,
@@ -84,6 +89,7 @@ export default {
       createTeamName: '',
       createTeamDescription: '',
       createTeamOpen: false,
+
 
     };
   },
@@ -132,9 +138,12 @@ export default {
     },
 
     openCreateTeamModal() {
+      console.log(this.endDate);
+
       this.showCreateTeamModal = true;
     },
     closeCreateTeamModal() {
+      console.log(this.endDate);
       this.showCreateTeamModal = false;
     },
     changeOpenOption(createTeamOpen) {
@@ -146,9 +155,12 @@ export default {
         teamName: this.createTeamName,
         description: this.createTeamDescription,
         isOpen: this.createTeamOpen,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        goalCount: this.goalCount,
       };
 
-      axios.post(this.apiUrl+`/team/create`,
+      axios.post(this.apiUrl + `/team/create`,
           teamDto, {
             headers: {
               'Content-Type': 'application/json',
@@ -163,8 +175,26 @@ export default {
       console.log('Submitted team name:', this.teamTag);
       this.closeCreateTeamModal();
     },
+    hideStartDatePicker() {
+      this.showStartDatePicker = false;
+    },
+    hideEndDatePicker(selectedDate) {
+      console.log(this.endDate);
+      this.endDate = selectedDate;
+      console.log(this.endDate);
+    },
 
+    formatDate(date) {
+      var yyyy = date.getFullYear().toString();
+      var mm = (date.getMonth() + 1).toString(); // getMonth() is zero-based
+      var dd = date.getDate().toString();
 
+      // Pad mm and dd with leading zeros if necessary
+      mm = mm[1] ? mm : '0' + mm[0];
+      dd = dd[1] ? dd : '0' + dd[0];
+
+      return yyyy + '-' + mm + '-' + dd; // Concatenate yyyy, mm, and dd to get yyyymmdd format
+    },
   },
 };
 </script>

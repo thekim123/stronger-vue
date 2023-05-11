@@ -5,13 +5,7 @@
     <ul>
       <li v-for="(goal, index) in goals" :key="index" class="list-group-item">
         <div class="d-flex justify-content-between align-items-center">
-          <span v-if="!goal.isEditing">{{ goal.name }}</span>
-          <input
-              v-else
-              v-model="goal.name"
-              @blur="goal.isEditing = false"
-              class="form-control"
-          />
+          <span>{{ goal.title }}</span>
           <div v-if="editable" class="btn-group ms-3" role="group">
             <button v-if="!goal.isEditing" @click="editGoal(goal)" class="btn btn-outline-primary">
               편집
@@ -22,7 +16,11 @@
       </li>
     </ul>
     <div v-if="editable" class="mt-3">
+
       <input v-model="newGoal" placeholder="새 목표 추가" class="form-control"/>
+      <Datepicker v-model="startDate"/>
+      <Datepicker v-model="endDate"/>
+      <input v-model="goalCount">
       <button @click="addGoal" class="btn btn-primary mt-2">추가</button>
     </div>
   </div>
@@ -30,9 +28,13 @@
 
 <script>
 import axios from "axios";
+import Datepicker from "vue3-datepicker";
 
 export default {
   name: "GoalListBox",
+  components: {
+    Datepicker,
+  },
   props: {
     goals: Array,
     editable: Boolean,
@@ -42,6 +44,11 @@ export default {
     return {
       apiUrl: `${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}`,
       newGoal: "",
+      goalCount: 0,
+
+      // 날짜 선택을 위한 변수
+      startDate: new Date(),
+      endDate: new Date(),
     };
   },
   methods: {
@@ -54,13 +61,14 @@ export default {
     addGoal() {
       if (this.newGoal.trim()) {
         this.$emit('add-goal', {name: this.newGoal, isEditing: false});
-        this.newGoal = "";
 
         const data = {
           title: this.newGoal,
           content: this.newGoal,
-          goalCount: 0,
+          goalCount: this.goalCount,
           teamId: this.teamId,
+          startDate: this.startDate,
+          endDate: this.endDate,
         };
 
         const response = axios.post(this.apiUrl + '/plan', data, {
