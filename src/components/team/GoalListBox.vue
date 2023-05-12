@@ -5,36 +5,32 @@
     <ul>
       <li v-for="(goal, index) in goals" :key="index" class="list-group-item">
         <div class="d-flex justify-content-between align-items-center">
-          <span>{{ goal.title }}</span>
           <div v-if="editable" class="btn-group ms-3" role="group">
-            <button v-if="!goal.isEditing" @click="editGoal(goal)" class="btn btn-outline-primary">
-              편집
-            </button>
-            <button @click="deleteGoal(index)" class="btn btn-outline-danger">삭제</button>
+            <input v-model="goal.title">
+            <input v-model="goal.content">
+            <span>{{ goal.actionCount }}</span>
+            <input v-model="goal.goalCount">
+            <button @click="editGoal(goal)" class="btn btn-outline-primary">편집</button>
+            <button @click="deleteGoal(goal.id)" class="btn btn-outline-danger">삭제</button>
           </div>
         </div>
       </li>
     </ul>
-    <div v-if="editable" class="mt-3">
 
-      <input v-model="newGoal" placeholder="새 목표 추가" class="form-control"/>
-      <Datepicker v-model="startDate"/>
-      <Datepicker v-model="endDate"/>
+    <div class="mt-3">
+      <input v-model="newGoalTitle" type="text" class="form-control" placeholder="새로운 목표 제목을 입력하세요">
+      <input v-model="newGoalContent" type="text" class="form-control" placeholder="새로운 목표 설명을 입력하세요">
       <input v-model="goalCount">
-      <button @click="addGoal" class="btn btn-primary mt-2">추가</button>
+      <button @click="addGoal" class="btn btn-primary mt-3">추가</button>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
-import Datepicker from "vue3-datepicker";
 
 export default {
   name: "GoalListBox",
-  components: {
-    Datepicker,
-  },
   props: {
     goals: Array,
     editable: Boolean,
@@ -43,44 +39,71 @@ export default {
   data() {
     return {
       apiUrl: `${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}`,
-      newGoal: "",
+      newGoalTitle: "",
+      newGoalContent: "",
       goalCount: 0,
-
-      // 날짜 선택을 위한 변수
-      startDate: new Date(),
-      endDate: new Date(),
     };
   },
   methods: {
     editGoal(goal) {
-      goal.isEditing = true;
-    },
-    deleteGoal(index) {
-      this.$emit('delete-goal', index);
-    },
-    addGoal() {
-      if (this.newGoal.trim()) {
-        this.$emit('add-goal', {name: this.newGoal, isEditing: false});
-
-        const data = {
-          title: this.newGoal,
-          content: this.newGoal,
-          goalCount: this.goalCount,
-          teamId: this.teamId,
-          startDate: this.startDate,
-          endDate: this.endDate,
-        };
-
-        const response = axios.post(this.apiUrl + '/plan', data, {
+      console.log(goal.title);
+      if (confirm("수정하시겠습니까?")) {
+        axios.put(this.apiUrl + "/goal", goal, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
           },
+        }).then((response) => {
+          console.log(response);
+        }).catch((error) => {
+          console.log(error);
         });
-        console.log(response);
-
       }
     },
+
+    deleteGoal(index) {
+      if(!confirm("삭제하시겠습니까?")){
+        return;
+      }
+
+      this.$emit('delete-goal', index);
+
+      axios.delete(this.apiUrl + "/goal/" + index, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
+        }
+      }).then((response) => {
+        console.log(response);
+      }).catch((error) => {
+        console.log(error);
+      });
+    },
+
+    addGoal() {
+      if (this.newGoalTitle.trim()) {
+        const data = {
+          title: this.newGoalTitle,
+          content: this.newGoalContent,
+          goalCount: this.goalCount,
+          teamId: this.teamId,
+        };
+
+        axios.post(this.apiUrl + '/goal', data, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
+          },
+        }).then((response) => {
+          console.log(response);
+          this.$emit('add-goal', response.data);
+        }).catch((error) => {
+          console.log(error);
+        });
+      }
+    },
+
+
   },
 };
 </script>

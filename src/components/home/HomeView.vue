@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h1><img class="home-badge" src="@/assets/badge-beginner.png" alt="뱃지" />{{ userNickname }}님, 힘내세요!</h1>
+    <h1><img class="home-badge" src="@/assets/badge-beginner.png" alt="뱃지" />{{ nickname }}님, 힘내세요!</h1>
     <p>한걸음 한걸음 목표에 다가가는 중이에요</p>
     <TodoListBox/>
   </div>
@@ -24,13 +24,18 @@ export default {
 
   setup() {
     const store = useStore();
-    const userNickname = computed(() => store.state.user.nickname);
+    const nickname = computed(() => store.state.user.nickname);
+    const username = computed(() => store.state.user.username);
 
     return {
-      userNickname
+      nickname: nickname,
+      username: username,
     };
   },
+  mounted() {
+    console.log('HomeView mounted');
 
+  }
 }
 </script>
 

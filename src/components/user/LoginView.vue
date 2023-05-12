@@ -44,9 +44,10 @@ export default {
         // JWT 토큰 저장
         const token = response.headers.getAuthorization();
         localStorage.setItem("user-token", token);
+        this.$store.dispatch('login', token);
 
         // 다른 페이지로 이동 또는 메인 페이지 새로고침
-        this.$router.push("/");
+        await this.$router.push("/");
       } catch (error) {
         console.error("로그인 오류:", error);
       }

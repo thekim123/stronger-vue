@@ -42,6 +42,10 @@
             placeholder="팀에 대한 간략한 설명을 입력해주세요."
             class="tag-input"
         />
+        <div class="mt-3">
+          <Datepicker v-model="startDate"/>
+          <Datepicker v-model="endDate"/>
+        </div>
         <div>
 
 
@@ -72,6 +76,7 @@
 
 <script>
 import axios from "axios";
+import Datepicker from "vue3-datepicker";
 
 export default {
   name: 'TeamListView',
@@ -90,8 +95,13 @@ export default {
       createTeamDescription: '',
       createTeamOpen: false,
 
-
+      // 날짜 선택을 위한 변수
+      startDate: new Date(),
+      endDate: new Date(),
     };
+  },
+  components: {
+    Datepicker,
   },
   // Vue에서 API를 호출하여 팀 목록 데이터를 가져오는 메서드를 추가합니다.
   // 예제에서는 더미 데이터를 사용합니다.
@@ -174,14 +184,6 @@ export default {
       });
       console.log('Submitted team name:', this.teamTag);
       this.closeCreateTeamModal();
-    },
-    hideStartDatePicker() {
-      this.showStartDatePicker = false;
-    },
-    hideEndDatePicker(selectedDate) {
-      console.log(this.endDate);
-      this.endDate = selectedDate;
-      console.log(this.endDate);
     },
 
     formatDate(date) {

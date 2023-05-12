@@ -1,12 +1,28 @@
-import { createStore } from 'vuex';
+import {createStore} from 'vuex';
+import jwtDecode from 'jwt-decode'; // JWT를 해독하기 위한 패키지 (예: jwt-decode)
 
 export default createStore({
     state: {
         user: {
-            nickname: '홍길동' // 로그인한 유저의 닉네임을 저장
-        }
+            username: null,
+            nickname: null,
+        },
+        token: null,
+        decodedToken: null,
     },
-    mutations: {},
-    actions: {},
+    mutations: {
+        setToken(state, token) {
+            state.token = token;
+            state.decodedToken = jwtDecode(token);
+            state.user.nickname = state.decodedToken!=null ? state.decodedToken.nickname : null;
+            state.user.username = state.decodedToken!=null ? state.decodedToken.username : null;
+        },
+    },
+    actions: {
+        login({commit}, token) {
+            commit('setToken', token);
+        },
+    },
     modules: {}
 });
+
