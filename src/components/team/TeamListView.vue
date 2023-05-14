@@ -60,11 +60,11 @@
     <!-- 팀 가입 모달 -->
     <div class="modal" v-if="showJoinModal">
       <div class="modal-content">
-        <h3>Wanna Join?</h3>
+        <h3>팀에 가입할건가요?</h3>
         <input
             type="text"
-            v-model="teamTag"
-            placeholder="Wanna Join?"
+            v-model="introduce"
+            placeholder="각오를 단단히 써주세요!!"
             class="tag-input"
         />
         <button @click="submitJoin">Submit</button>
@@ -98,6 +98,10 @@ export default {
       // 날짜 선택을 위한 변수
       startDate: new Date(),
       endDate: new Date(),
+
+      // 팀 가입을 위한 변수
+      introduce: '',
+      submitTeamId: '',
     };
   },
   components: {
@@ -125,13 +129,25 @@ export default {
     openJoinModal(team) {
       this.selectedTeam = team;
       this.showJoinModal = true;
+      this.submitTeamId = team.id;
     },
     closeJoinModal() {
       this.selectedTeam = null;
       this.showJoinModal = false;
+      this.submitTeamId = '';
     },
     submitJoin() {
-      console.log('Submitted team name:', this.teamTag);
+      axios.post(this.apiUrl + '/team/join/' + this.submitTeamId, this.introduce, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
+        },
+      }).then((response) => {
+        console.log(response);
+      }).catch((error) => {
+        console.error(error);
+      });
+
       this.closeJoinModal();
     },
 

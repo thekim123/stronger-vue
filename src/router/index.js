@@ -4,7 +4,7 @@ import ShareYourProgress from '../components/sns/ShareYourProgress.vue';
 import GoalsView from "@/components/goals/GoalsView.vue";
 import TeamListView from "@/components/team/TeamListView.vue";
 import LoginView from "@/components/user/LoginView.vue";
-import UserProfileView from "@/components/user/UserProfileView.vue";
+import UserProfileView from "@/components/user/ProfileView.vue";
 import SignUpView from "@/components/user/SignUpView.vue";
 import MyTeam from "@/components/team/MyTeam.vue";
 import TeamMemberDetailView from "@/components/team/TeamMemberDetailView.vue";

@@ -5,7 +5,6 @@
     <ul>
       <li v-for="(goal, index) in goals" :key="index" class="list-group-item">
         <div class="d-flex justify-content-between align-items-center">
-          <span>{{ goal.title }}</span>
           <div v-if="editable" class="btn-group ms-3" role="group">
             <input v-model="goal.title">
             <input v-model="goal.content">

@@ -9,13 +9,14 @@ export default createStore({
         },
         token: null,
         decodedToken: null,
+
     },
     mutations: {
         setToken(state, token) {
             state.token = token;
             state.decodedToken = jwtDecode(token);
-            state.user.nickname = state.decodedToken!=null ? state.decodedToken.nickname : null;
-            state.user.username = state.decodedToken!=null ? state.decodedToken.username : null;
+            state.user.nickname = state.decodedToken != null ? state.decodedToken.nickname : null;
+            state.user.username = state.decodedToken != null ? state.decodedToken.username : null;
         },
     },
     actions: {

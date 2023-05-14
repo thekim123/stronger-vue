@@ -5,13 +5,17 @@
     <ul class="list-group">
       <li v-for="(member, index) in teamMembers"
           :key="index"
-          @click="showGoals(member)"
           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
       >
-        <router-link :to="`/my-teams/detail/${teamId}/teamMemberId/${member.id}`" :memberId="member.id" class="btn btn-primary">
-          {{member.id}}{{ member.name }}
+      <!--          @click="showGoals(member)"-->
+        <router-link
+            :to="`/my-teams/detail/${teamId}/teamMemberId/${member.id}`"
+            :memberId="member.id"
+            class="btn btn-primary"
+        >
+          {{ member.nickname }}
         </router-link>
-        <span class="badge bg-primary rounded-pill">{{ member.grade }}</span>
+        <span @click="changeGrade" class="badge bg-primary rounded-pill">{{ member.gradeName }}</span>
       </li>
     </ul>
     <div v-if="selectedMember" class="mt-5">
@@ -30,6 +34,7 @@ export default {
   name: "TeamDetailView",
   data() {
     return {
+      apiUrl: `${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}`,
       teamMembers: [],
       userGoals: [],
       selectedMember: null,
@@ -48,18 +53,23 @@ export default {
   },
   methods: {
     async fetchTeamMembers(teamId) {
-      const response = await axios.get(`${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}/team/owner/` + teamId, {
+      const response = await axios.get(this.apiUrl + `/team/owner/` + teamId, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
         },
       });
       this.teamMembers = response.data;
+      console.log(this.teamMembers);
     },
     showGoals(member) {
+      console.log(member);
       this.selectedMember = member;
-      // Fetch goals for the selected team member
     },
+
+    changeGrade() {
+
+    }
   }
 };
 </script>

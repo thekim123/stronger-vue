@@ -14,17 +14,17 @@
         <div class="self-feedback box">
           <h2>셀프 피드백</h2>
           <div class="self-feedback content">
-            효냥이의 간식을 뺏어먹으려고 했다.<br/>
-            하지만 실패했다.<br/>
-            다음에는 더 빨리 먹어야겠다.<br/>
+            <!--          <input v-model="member.selfFeedback.title">-->
+            <!--          <span>{{ // self.content }}</span>-->
           </div>
         </div>
+
+
         <div class="manager-feedback box">
           <h2>팀장 피드백</h2>
           <div class="manager-feedback content">
-            효냥이의 간식을 탐내지마라!!.<br/>
-            다음에는 더 빨리 너를 적발할거야.<br/>
-            각오해.<br/>
+            <!--        <input v-model="member.feedback.title">-->
+            <!--        <span>{{ member.feedback.content }}</span>-->
           </div>
         </div>
       </div>
@@ -34,64 +34,97 @@
 
 <script>
 import Chart from 'chart.js/auto';
-import {ref} from "vue";
+import axios from "axios";
+import {apiURL} from "@/services/apiService";
 
 export default {
-  setup() {
-    const selectedDate = ref('');
-    const tasks = ref(null);
-
-    const fetchTasks = () => {
-      // 서버에서 선택한 날짜의 데이터를 가져옵니다.
-      // 이 예제에서는 가상 데이터를 사용합니다.
-      tasks.value = {
-        plans: [
-          {title: 'Plan 1', completion: 100},
-          {title: 'Plan 2', completion: 80}
-        ],
-        feedback: 'Great job today!'
-      };
-    };
-
-    return {
-      selectedDate,
-      tasks,
-      fetchTasks
-    };
-  },
+  name: 'GoalsView',
   data() {
     return {
-      chart: null
+      teamIndex: 0,
+      member: {},
+      selectedDate: new Date(),
+      chart: null,
+      teams: [],
+      goals: [],
     };
   },
   mounted() {
-    this.drawAchievementChart();
+    this.getTeamList();
   },
   methods: {
+    getTeamList() {
+      axios.get(apiURL + '/team/my-list', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('user-token')}`,
+        },
+      }).then((response) => {
+        this.teams = response.data;
+        this.teamIndex = 0;
+        console.log(this.teams);
+        this.fetchTasks();
+      }).catch((error) => {
+        console.log(error);
+      });
+    },
+
+    fetchTasks() {
+      // 이전 차트가 있으면 파괴
+      if (this.chart) {
+        this.chart.destroy();
+      }
+
+      if (this.teams.length === 0) {
+        return;
+      }
+
+      axios.get(apiURL + '/goal/team/' + this.teams[this.teamIndex].id, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('user-token')}`,
+        },
+      }).then((response) => {
+        this.goals = response.data;
+        console.log('member');
+        console.log(this.goals);
+        this.drawAchievementChart();
+      }).catch((error) => {
+        console.log(error);
+      });
+    },
+
     drawAchievementChart() {
+      // 이전 차트가 있으면 파괴
+      if (this.chart) {
+        this.chart.destroy();
+      }
+
       const ctx = document.getElementById('achievement-chart').getContext('2d');
 
+      // 목표 이름 및 달성률 데이터 생성
+      const names = this.goals.map(goal => goal.title);
+      const achievementRates = this.goals.map(goal => {
+        if (goal.dailyCheck !== null) {
+          return goal.dailyCheck.length / goal.goalCount * 100;
+        } else {
+          return 0;
+        }
+      });
+
+      console.log(achievementRates);
+      // Chart.js를 사용하여 차트 생성
       this.chart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['목표 1', '목표 2', '목표 3'],
-          datasets: [
-            {
-              label: '달성률',
-              data: [75, 50, 90],
-              backgroundColor: [
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(255, 99, 132, 0.2)'
-              ],
-              borderColor: [
-                'rgba(75, 192, 192, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(255, 99, 132, 1)'
-              ],
-              borderWidth: 1
-            }
-          ]
+          labels: names,
+          datasets: [{
+            label: '달성률',
+            data: achievementRates,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+          }]
         },
         options: {
           indexAxis: 'y',
@@ -104,8 +137,9 @@ export default {
         }
       });
     }
-  }
-};
+  },
+}
+
 </script>
 
 <style scoped>

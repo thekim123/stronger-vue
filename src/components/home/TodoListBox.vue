@@ -6,8 +6,8 @@
     <ul class="todo-list">
       <!-- 여기에 할 일 목록을 추가할 수 있습니다 -->
       <li v-for="(todo, index) in todos" :key="index">
-        <span :class="{ completed: todo.dailyCheck?.isCompleted }">{{ todo.title }}</span>
-        <input type="checkbox" :checked="todo.dailyCheck?.isCompleted" @change="toggleCompleted(todo)"/>
+        <span :class="{ 'completed': todo.dailyCheck?.completed }">{{ todo.title }}</span>
+        <input type="checkbox" :checked="todo.dailyCheck?.completed" @change="toggleCompleted(todo)"/>
       </li>
     </ul>
   </div>
@@ -31,17 +31,17 @@ export default {
       const day = date.getDate();
       return `${month}월 ${day}일`;
     },
-    //TODO 이거 버그 있음. 막 누르면 잘 안됨.
+    // TODO: 이거 버그 있음. 막 누르면 잘 안됨.
     async toggleCompleted(todo) {
       if (this.isRequestPending) {
         // 이전 요청이 아직 처리 중이면 새 요청을 보내지 않음
         return;
       }
       this.isRequestPending = true;  // 요청 시작을 표시
-      if (!todo.dailyCheck) {
+      if (todo.dailyCheck.id === null) {
         // dailyCheck가 없을 경우 새로 생성
         todo.dailyCheck = {
-          isCompleted: true,
+          completed: true,
           // 다른 필요한 속성들도 이곳에 초기화
         };
         // POST 요청을 보내서 서버에 반영
@@ -55,9 +55,9 @@ export default {
 
       } else {
         // dailyCheck가 있을 경우 isCompleted 상태 반전
-        todo.dailyCheck.isCompleted = !todo.dailyCheck.isCompleted;
+        todo.dailyCheck.completed = !todo.dailyCheck.completed;
         // PUT 요청을 보내서 서버에 반영
-        await axios.delete(`${this.apiUrl}/goal/${todo.id}/daily`, {
+        await axios.put(`${this.apiUrl}/goal/${todo.id}/daily`, todo,{
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
@@ -82,6 +82,7 @@ export default {
     }).then(response => {
       console.log(response);
       this.todos = response.data;
+      console.log(response.data[0].dailyCheck.completed);
     }).catch(error => {
       console.log(error);
     });
@@ -130,7 +131,7 @@ export default {
   color: #ccc;
 }
 
-.completed::before {
+.todo-list .completed-before {
   content: '';
   position: absolute;
   left: 0;

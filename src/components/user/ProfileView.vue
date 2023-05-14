@@ -2,11 +2,20 @@
   <div class="profile-container">
     <h2 class="profile-header">User Profile</h2>
     <form @submit.prevent="submitUpdateForm">
-      <label for="name" class="profile-label">Name</label>
+      <label for="username" class="profile-label">Username</label>
       <input
           type="text"
-          id="name"
-          v-model="name"
+          id="username"
+          v-model="user.username"
+          required
+          class="profile-input"
+      />
+
+      <label for="nickname" class="profile-label">Nickname</label>
+      <input
+          type="text"
+          id="nickname"
+          v-model="user.nickname"
           required
           class="profile-input"
       />
@@ -15,7 +24,7 @@
       <input
           type="email"
           id="email"
-          v-model="email"
+          v-model="user.email"
           required
           class="profile-input"
       />
@@ -24,7 +33,7 @@
       <input
           type="password"
           id="password"
-          v-model="password"
+          v-model="user.password"
           class="profile-input"
       />
 
@@ -32,7 +41,7 @@
       <input
           type="password"
           id="confirmPassword"
-          v-model="confirmPassword"
+          v-model="this.confirmPassword"
           class="profile-input"
       />
 
@@ -42,23 +51,55 @@
 </template>
 
 <script>
+import axios from "axios";
+import {apiURL} from "@/services/apiService";
+
 export default {
   name: 'UserProfileView',
   data() {
     return {
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      password: '',
+      user: {},
       confirmPassword: '',
     };
+  },
+  mounted() {
+    axios.get(apiURL + '/user/profile', {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('user-token')}`,
+      },
+    })
+        .then((response) => {
+          this.user = response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
   },
   methods: {
     submitUpdateForm() {
       // 여기에서 회원 정보 수정 API 호출을 구현합니다.
-      console.log('Name:', this.name);
-      console.log('Email:', this.email);
-      console.log('New Password:', this.password);
+      console.log('user:', this.user);
       console.log('Confirm New Password:', this.confirmPassword);
+      if (confirm('회원 정보를 수정하시겠습니까?') === false) return;
+      if (this.user.password !== this.confirmPassword) {
+        alert('비밀번호가 일치하지 않습니다.');
+        return;
+      }
+
+      axios.put(apiURL + '/user/profile', this.user, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('user-token')}`,
+        },
+      }).then((response) => {
+        alert('회원 정보가 수정되었습니다.');
+        console.log(response);
+        this.$router.push({path: '/'});
+      }).catch((error) => {
+        console.log(error);
+      });
+
     },
   },
 };
@@ -114,5 +155,5 @@ export default {
   cursor: pointer;
   border-radius: 5px;
 }
-</style >
+</style>
 

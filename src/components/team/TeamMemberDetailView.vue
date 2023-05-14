@@ -35,11 +35,15 @@ export default {
   },
   methods: {
     async fetchUserGoal() {
-      const response = await axios.get(this.apiUrl + '/goal/team/' + this.memberId, {
+      const response = await axios.get(this.apiUrl + '/goal/team/' + this.teamId, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + localStorage.getItem('user-token'),
         },
+      }).then((response) => {
+        console.log(response);
+      }).catch((error) => {
+        console.log(error);
       });
       this.userGoals = response.data;
     },

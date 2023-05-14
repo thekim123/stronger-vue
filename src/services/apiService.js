@@ -2,6 +2,7 @@ import axios from "axios";
 
 export const apiHost = process.env.VUE_APP_API_HOST;
 export const apiPort = process.env.VUE_APP_API_PORT;
+export const apiURL = `${apiHost}:${apiPort}`;
 
 const apiService = axios.create({
     baseURL: `${apiHost}:${apiPort}`,
