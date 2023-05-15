@@ -1,21 +1,21 @@
 <template>
   <div class="tasks">
+    <span v-if="teams.length > 0">{{ teams[teamIndex].teamName }}</span>
     <div class="date-picker">
-      <input type="date" v-model="selectedDate" @change="fetchTasks"/>
+      <input type="date" v-model="selectedDate" @change="fetchTasks">
     </div>
     <div class="goals-container">
       <div class="left-side box">
         <h2>목표 목록</h2>
         <div class="chart-container">
-          <canvas id="achievement-chart" class=""></canvas>
+          <div ref="chart" style="width: 60%; height:300px;"></div>
         </div>
       </div>
       <div class="right-side">
         <div class="self-feedback box">
           <h2>셀프 피드백</h2>
           <div class="self-feedback content">
-            <!--          <input v-model="member.selfFeedback.title">-->
-            <!--          <span>{{ // self.content }}</span>-->
+            <span>{{ this.selfFeedback.reason }}</span>
           </div>
         </div>
 
@@ -24,7 +24,7 @@
           <h2>팀장 피드백</h2>
           <div class="manager-feedback content">
             <!--        <input v-model="member.feedback.title">-->
-            <!--        <span>{{ member.feedback.content }}</span>-->
+            <span>{{ this.feedback.comment }}</span>
           </div>
         </div>
       </div>
@@ -33,9 +33,9 @@
 </template>
 
 <script>
-import Chart from 'chart.js/auto';
 import axios from "axios";
 import {apiURL} from "@/services/apiService";
+import * as echarts from 'echarts';
 
 export default {
   name: 'GoalsView',
@@ -47,13 +47,24 @@ export default {
       chart: null,
       teams: [],
       goals: [],
+      feedback: {},
+      selfFeedback: {},
     };
   },
   mounted() {
+    if (this.chart) {
+      this.chart.destroy();
+    }
+
     this.getTeamList();
   },
   methods: {
     getTeamList() {
+      // 이전 차트가 있으면 파괴
+      if (this.chart) {
+        this.chart.destroy();
+      }
+
       axios.get(apiURL + '/team/my-list', {
         headers: {
           'Content-Type': 'application/json',
@@ -63,6 +74,7 @@ export default {
         this.teams = response.data;
         this.teamIndex = 0;
         console.log(this.teams);
+        console.log(this.teams[this.teamIndex].teamName);
         this.fetchTasks();
       }).catch((error) => {
         console.log(error);
@@ -79,15 +91,22 @@ export default {
         return;
       }
 
-      axios.get(apiURL + '/goal/team/' + this.teams[this.teamIndex].id, {
+      const formattedDate = new Date().toISOString().split('T')[0]; // 날짜를 'yyyy-MM-dd' 형식으로 변환합니다.
+      console.log(apiURL + '/team/' + this.teams[this.teamIndex].id + '/date/' + formattedDate);
+
+      axios.get(apiURL + '/analysis/team/' + this.teams[this.teamIndex].id + '/date/' + formattedDate, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('user-token')}`,
         },
       }).then((response) => {
-        this.goals = response.data;
+        this.goals = response.data.goalList;
+        this.feedback = response.data.feedback;
+        this.selfFeedback = response.data.selfFeedback;
         console.log('member');
         console.log(this.goals);
+        console.log(this.feedback);
+        console.log(this.selfFeedback);
         this.drawAchievementChart();
       }).catch((error) => {
         console.log(error);
@@ -100,42 +119,44 @@ export default {
         this.chart.destroy();
       }
 
-      const ctx = document.getElementById('achievement-chart').getContext('2d');
-
       // 목표 이름 및 달성률 데이터 생성
       const names = this.goals.map(goal => goal.title);
       const achievementRates = this.goals.map(goal => {
-        if (goal.dailyCheck !== null) {
-          return goal.dailyCheck.length / goal.goalCount * 100;
+        if (goal.dailyCheckDtoList !== null) {
+          let weekCount = goal.dailyCheckDtoList.length === null ? 0
+              : goal.dailyCheckDtoList.length;
+          return weekCount / goal.goalCount * 100;
         } else {
           return 0;
         }
       });
 
       console.log(achievementRates);
-      // Chart.js를 사용하여 차트 생성
-      this.chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: names,
-          datasets: [{
-            label: '달성률',
-            data: achievementRates,
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-          }]
+
+      // Initialize chart
+      const myChart = echarts.init(this.$refs.chart);
+
+      // Specify chart configuration
+      const option = {
+        tooltip: {},
+        legend: {
+          data:['달성률']
         },
-        options: {
-          indexAxis: 'y',
-          scales: {
-            x: {
-              beginAtZero: true,
-              max: 100
-            }
-          }
-        }
-      });
+        xAxis: {
+        },
+        yAxis: {
+          data:names
+        },
+        series: [{
+          name: '달성률',
+          type: 'bar',
+          data: achievementRates
+        }]
+      };
+
+      // Use configuration item and data specified to show chart.
+      myChart.setOption(option);
+
     }
   },
 }
@@ -189,8 +210,8 @@ input[type="date"]:focus {
 }
 
 .chart-container {
-  width: 80%; /* 차트 너비를 조절합니다. */
-  height: 200px; /* 차트 높이를 조절합니다. */
+  width: 600px; /* 차트 너비를 조절합니다. */
+  height: 400px; /* 차트 높이를 조절합니다. */
   margin: 0 auto; /* 차트를 중앙에 배치합니다. */
 }
 

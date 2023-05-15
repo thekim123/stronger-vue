@@ -23,6 +23,8 @@
 
 <script>
 import axios from "axios";
+import store from "../../store/store";
+import {apiURL} from "@/services/apiService";
 
 export default {
   name: 'LoginView',
@@ -36,7 +38,7 @@ export default {
     async submitLoginForm() {
       try {
         // 로그인 API 요청
-        const response = await axios.post(`${process.env.VUE_APP_API_HOST}:${process.env.VUE_APP_API_PORT}/login`, {
+        const response = await axios.post(apiURL + `/login`, {
           username: this.username,
           password: this.password,
         });
@@ -44,9 +46,10 @@ export default {
         // JWT 토큰 저장
         const token = response.headers.getAuthorization();
         localStorage.setItem("user-token", token);
+        await store.dispatch('login', token);
 
         // 다른 페이지로 이동 또는 메인 페이지 새로고침
-        this.$router.push("/");
+        await this.$router.push("/");
       } catch (error) {
         console.error("로그인 오류:", error);
       }

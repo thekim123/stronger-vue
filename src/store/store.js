@@ -1,5 +1,5 @@
 import {createStore} from 'vuex';
-import jwtDecode from 'jwt-decode'; // JWT를 해독하기 위한 패키지 (예: jwt-decode)
+import jwtDecode from 'jwt-decode';
 
 export default createStore({
     state: {
@@ -9,7 +9,6 @@ export default createStore({
         },
         token: null,
         decodedToken: null,
-
     },
     mutations: {
         setToken(state, token) {
